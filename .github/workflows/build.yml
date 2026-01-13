@@ -1,0 +1,58 @@
+name: Build and Verify
+
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: ["Update Hytale Launcher"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [hytale-launcher, hytale-launcher-unwrapped]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build ${{ matrix.package }}
+        run: |
+          nix build .#${{ matrix.package }} --print-build-logs
+
+      - name: Verify package
+        run: |
+          # Check binary exists
+          if [ "${{ matrix.package }}" = "hytale-launcher" ]; then
+            test -x ./result/bin/hytale-launcher
+            echo "Launcher binary verified"
+
+            # Check desktop file
+            test -f ./result/share/applications/hytale-launcher.desktop
+            echo "Desktop file verified"
+          else
+            test -x ./result/lib/hytale-launcher/hytale-launcher
+            echo "Unwrapped binary verified"
+          fi
+
+          # Check icons
+          test -d ./result/share/icons/hicolor
+          echo "Icons verified"
+
+      - name: Package size
+        run: |
+          SIZE=$(du -sh ./result | cut -f1)
+          echo "Package size: $SIZE"
+          echo "::notice title=Package Size::${{ matrix.package }}: $SIZE"

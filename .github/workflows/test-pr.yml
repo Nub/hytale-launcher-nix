@@ -1,0 +1,61 @@
+name: Test Pull Request
+
+on:
+  pull_request:
+    paths:
+      - 'package.nix'
+      - 'flake.nix'
+      - 'flake.lock'
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [hytale-launcher, hytale-launcher-unwrapped]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build ${{ matrix.package }}
+        run: |
+          nix build .#${{ matrix.package }} --print-build-logs
+
+      - name: Verify ${{ matrix.package }}
+        run: |
+          if [ "${{ matrix.package }}" = "hytale-launcher" ]; then
+            # Verify FHS wrapper
+            test -x ./result/bin/hytale-launcher
+            echo "FHS wrapper binary: OK"
+
+            # Verify desktop file
+            test -f ./result/share/applications/hytale-launcher.desktop
+            echo "Desktop file: OK"
+
+            # Verify icons are linked
+            test -d ./result/share/icons/hicolor
+            echo "Icons symlink: OK"
+          else
+            # Verify unwrapped binary
+            test -x ./result/lib/hytale-launcher/hytale-launcher
+            echo "Unwrapped binary: OK"
+
+            # Verify icons exist (not symlinked)
+            test -f ./result/share/icons/hicolor/256x256/apps/hytale-launcher.png
+            echo "Icons: OK"
+          fi
+
+      - name: Package size check
+        run: |
+          SIZE=$(du -sh ./result | cut -f1)
+          echo "Package size: $SIZE"
+          echo "::notice title=Package Size::${{ matrix.package }}: $SIZE"

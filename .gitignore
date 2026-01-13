@@ -1,0 +1,24 @@
+# Nix build outputs
+result
+result-*
+
+# direnv
+.direnv/
+
+# Editor backups
+*~
+*.swp
+*.swo
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Claude Code
+.claude/settings.local.json
