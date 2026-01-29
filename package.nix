@@ -1,6 +1,4 @@
-{ pkgs }:
-
-let
+{pkgs}: let
   # === AUTO-UPDATE MARKERS - DO NOT MODIFY FORMAT ===
   version = "2026.01.28-6fc68ec";
   sha256 = "sha256-Pg2Q4J3P/Ln4JrlCTW1MdQU+6qxxfurMHrh7Rv+1P6E=";
@@ -70,14 +68,16 @@ let
       description = "Official launcher for Hytale game (unwrapped)";
       homepage = "https://hytale.com";
       license = licenses.unfree;
-      sourceProvenance = with sourceTypes; [ binaryNativeCode ];
-      maintainers = [{
-        name = "Jacob Pyke";
-        email = "github@pyk.ee";
-        github = "JPyke3";
-        githubId = 13283054;
-      }];
-      platforms = [ "x86_64-linux" ];
+      sourceProvenance = with sourceTypes; [binaryNativeCode];
+      maintainers = [
+        {
+          name = "Jacob Pyke";
+          email = "github@pyk.ee";
+          github = "JPyke3";
+          githubId = 13283054;
+        }
+      ];
+      platforms = ["x86_64-linux"];
     };
   };
 
@@ -86,76 +86,79 @@ let
     name = "hytale-launcher";
     inherit version;
 
-    targetPkgs = pkgs: with pkgs; [
-      # Core dependencies
-      hytale-launcher-unwrapped
+    targetPkgs = pkgs:
+      with pkgs; [
+        # Core dependencies
+        hytale-launcher-unwrapped
 
-      # WebKit/GTK stack (for launcher UI)
-      webkitgtk_4_1
-      gtk3
-      glib
-      gdk-pixbuf
-      libsoup_3
-      cairo
-      pango
-      at-spi2-atk
-      harfbuzz
+        # WebKit/GTK stack (for launcher UI)
+        webkitgtk_4_1
+        gtk3
+        glib
+        gdk-pixbuf
+        libsoup_3
+        cairo
+        pango
+        at-spi2-atk
+        harfbuzz
 
-      # Graphics - OpenGL/Vulkan/EGL (for game client via SDL3)
-      libGL
-      libGLU
-      libglvnd
-      mesa
-      vulkan-loader
-      egl-wayland
+        # Graphics - OpenGL/Vulkan/EGL (for game client via SDL3)
+        libGL
+        libGLU
+        libglvnd
+        mesa
+        vulkan-loader
+        egl-wayland
 
-      # X11 (SDL3 dlopens these)
-      xorg.libX11
-      xorg.libXcomposite
-      xorg.libXdamage
-      xorg.libXext
-      xorg.libXfixes
-      xorg.libXrandr
-      xorg.libXcursor
-      xorg.libXi
-      xorg.libxcb
-      xorg.libXScrnSaver
-      xorg.libXinerama
-      xorg.libXxf86vm
+        # X11 (SDL3 dlopens these)
+        xorg.libX11
+        xorg.libXcomposite
+        xorg.libXdamage
+        xorg.libXext
+        xorg.libXfixes
+        xorg.libXrandr
+        xorg.libXcursor
+        xorg.libXi
+        xorg.libxcb
+        xorg.libXScrnSaver
+        xorg.libXinerama
+        xorg.libXxf86vm
 
-      # Wayland (SDL3 can use Wayland backend)
-      wayland
-      libxkbcommon
+        # Wayland (SDL3 can use Wayland backend)
+        wayland
+        libxkbcommon
 
-      # Audio (for game client via bundled OpenAL)
-      alsa-lib
-      pipewire
-      pulseaudio
+        # Audio (for game client via bundled OpenAL)
+        alsa-lib
+        pipewire
+        pulseaudio
 
-      # System libraries
-      dbus
-      fontconfig
-      freetype
-      glibc
-      nspr
-      nss
-      systemd
-      zlib
+        # System libraries
+        dbus
+        fontconfig
+        freetype
+        glibc
+        nspr
+        nss
+        systemd
+        zlib
 
-      # C++ runtime (needed by libNoesis.so, libopenal.so in game client)
-      stdenv.cc.cc.lib
+        # C++ runtime (needed by libNoesis.so, libopenal.so in game client)
+        stdenv.cc.cc.lib
 
-      # .NET runtime dependencies (HytaleClient is a .NET application)
-      icu
-      openssl
-      krb5
+        # .NET runtime dependencies (HytaleClient is a .NET application)
+        icu
+        openssl
+        krb5
 
-      # TLS/SSL support for GLib networking (launcher)
-      glib-networking
-      cacert
-    ];
+        # TLS/SSL support for GLib networking (launcher)
+        glib-networking
+        cacert
+      ];
 
     runScript = pkgs.writeShellScript "hytale-launcher-wrapper" ''
+      NIXOS_OZONE_WL=1
+
       # Hytale data directory
       LAUNCHER_DIR="''${XDG_DATA_HOME:-$HOME/.local/share}/Hytale"
       LAUNCHER_BIN="$LAUNCHER_DIR/hytale-launcher"
@@ -186,20 +189,20 @@ let
     '';
 
     extraInstallCommands = ''
-      # Install desktop file
-      mkdir -p $out/share/applications
-      cat > $out/share/applications/hytale-launcher.desktop << EOF
-[Desktop Entry]
-Name=Hytale Launcher
-Comment=Official launcher for Hytale
-Exec=$out/bin/hytale-launcher
-Icon=hytale-launcher
-Terminal=false
-Type=Application
-Categories=Game;
-Keywords=hytale;game;launcher;hypixel;
-StartupWMClass=com.hypixel.HytaleLauncher
-EOF
+            # Install desktop file
+            mkdir -p $out/share/applications
+            cat > $out/share/applications/hytale-launcher.desktop << EOF
+      [Desktop Entry]
+      Name=Hytale Launcher
+      Comment=Official launcher for Hytale
+      Exec=$out/bin/hytale-launcher
+      Icon=hytale-launcher
+      Terminal=false
+      Type=Application
+      Categories=Game;
+      Keywords=hytale;game;launcher;hypixel;
+      StartupWMClass=com.hypixel.HytaleLauncher
+      EOF
 
     '';
 
@@ -212,18 +215,19 @@ EOF
       '';
       homepage = "https://hytale.com";
       license = licenses.unfree;
-      sourceProvenance = with sourceTypes; [ binaryNativeCode ];
-      maintainers = [{
-        name = "Jacob Pyke";
-        email = "github@pyk.ee";
-        github = "JPyke3";
-        githubId = 13283054;
-      }];
-      platforms = [ "x86_64-linux" ];
+      sourceProvenance = with sourceTypes; [binaryNativeCode];
+      maintainers = [
+        {
+          name = "Jacob Pyke";
+          email = "github@pyk.ee";
+          github = "JPyke3";
+          githubId = 13283054;
+        }
+      ];
+      platforms = ["x86_64-linux"];
       mainProgram = "hytale-launcher";
     };
   };
-
 in {
   inherit hytale-launcher hytale-launcher-unwrapped;
 }
